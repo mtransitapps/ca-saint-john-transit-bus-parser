@@ -107,17 +107,22 @@ public class StJohnTransitBusAgencyTools extends DefaultAgencyTools {
 		return CleanUtils.cleanLabel(gStopName);
 	}
 
-	private static final Pattern STARTS_WITH_BSTP_ = Pattern.compile("(^bstp)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_BSTP_ = Pattern.compile("(^bstp\\(?(\\d+)\\)?)", Pattern.CASE_INSENSITIVE);
+	private static final String STARTS_WITH_BSTP_REPLACEMENT = "$2";
 
 	@Override
 	public int getStopId(@NotNull GStop gStop) {
 		//noinspection deprecation
 		String stopId = gStop.getStopId();
-		stopId = STARTS_WITH_BSTP_.matcher(stopId).replaceAll(EMPTY);
+		switch (stopId) {
+		case "NBCC Loop":
+			return 100_000;
+		}
+		stopId = STARTS_WITH_BSTP_.matcher(stopId).replaceAll(STARTS_WITH_BSTP_REPLACEMENT);
 		try {
 			return Integer.parseInt(stopId);
 		} catch (Exception e) {
-			throw new MTLog.Fatal(e, "Error while extracting stop ID %s!", stopId);
+			throw new MTLog.Fatal(e, "Error while extracting stop ID %s from %s!", stopId, gStop.toStringPlus(true));
 		}
 	}
 }
